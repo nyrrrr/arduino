@@ -1,7 +1,1 @@
-﻿drvr.obj : error LNK2019: unresolved external symbol __imp__htons@4 referenced in function _sendUDPMessage
-drvr.obj : error LNK2019: unresolved external symbol __imp__inet_addr@4 referenced in function _sendUDPMessage
-drvr.obj : error LNK2019: unresolved external symbol __imp__sendto@24 referenced in function _sendUDPMessage
-drvr.obj : error LNK2019: unresolved external symbol __imp__socket@12 referenced in function _main
-drvr.obj : error LNK2019: unresolved external symbol __imp__WSAStartup@8 referenced in function _startWinsock
-drvr.obj : error LNK2019: unresolved external symbol __imp__WSAGetLastError@0 referenced in function _sendUDPMessage
-C:\Users\d056678\Desktop\arduino\Debug\arduino.exe : fatal error LNK1120: 6 unresolved externals
+﻿  arduino.vcxproj -> C:\Users\tmoth\Google Drive\Max Technikerarbeit\udpclient\Debug\arduino.exe

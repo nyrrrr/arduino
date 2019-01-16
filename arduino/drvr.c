@@ -1,5 +1,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#pragma comment(lib, "Ws2_32.lib")
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -95,20 +96,26 @@ int main()
 	FILE *fpointer = fopen("./dictionary.json", "r");
 	long size;
 	char* buffer = 0;
+	int c, i = 0;
 
 	if (fpointer) {
 		// determine size of file
-		fseek(fpointer, 0L, SEEK_END); // jump to end
+		fseek(fpointer, 0, SEEK_END); // jump to end
 		size = ftell(fpointer);
 		fseek(fpointer, 0, SEEK_SET); // jump back
 		buffer = malloc(size+1); // set buffer size to file length
 
-		if (buffer) {
-			fread(buffer, 1, size, fpointer);
+		while ((c = fgetc(fpointer)) != EOF) {
+			buffer[i++] = (char) c;
 		}
-		buffer[size] = 0;
+		buffer[i] = '\0';
+
 		fclose(fpointer);
 		printf("Content of file: %s\n", buffer);
+	}
+	else {
+		perror("Error: ");
+		return(-1);
 	}
 
 	// TODO parse to JSON
@@ -127,7 +134,7 @@ int main()
 		name = readString(max, name);
 		name = convertString(name);
 
-		sendUDPMessage(sock, name);
+		sendUDPMessage(sock, buffer);
 
 		free(name); // release memory 
 	}

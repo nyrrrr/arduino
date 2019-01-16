@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="arduino\dictionary.json">
+    <None Include="dictionary.json">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

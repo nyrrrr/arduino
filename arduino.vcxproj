@@ -103,7 +103,7 @@
     <ClCompile Include="arduino\drvr.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="arduino\dictionary.json" />
+    <None Include="dictionary.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
