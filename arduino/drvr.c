@@ -72,6 +72,34 @@ char* sendUDPMessage(SOCKET sock, char* msg) {
 		return EXIT_SUCCESS;
 	}
 }
+// this method loads the JSON file that contains the string mappings
+// necessary for sending instructions to the arduino board
+char* loadDictionary() {
+	FILE *fpointer = fopen("./dictionary.json", "r");
+	long size;
+	char* buffer = 0;
+	int c, i = 0;
+
+	if (fpointer) {
+		// determine size of file
+		fseek(fpointer, 0, SEEK_END); // jump to end
+		size = ftell(fpointer);
+		fseek(fpointer, 0, SEEK_SET); // jump back
+		buffer = malloc(size + 1); // set buffer size to file length
+
+		while ((c = fgetc(fpointer)) != EOF) {
+			buffer[i++] = (char)c;
+		}
+		buffer[i] = 0;
+
+		fclose(fpointer);
+		return buffer;
+	}
+	else {
+		perror("Error: ");
+		return(-1);
+	}
+}
 int main()
 {
 	// init socket
@@ -93,30 +121,8 @@ int main()
 	}
 
 	// read dictionary from disk
-	FILE *fpointer = fopen("./dictionary.json", "r");
-	long size;
-	char* buffer = 0;
-	int c, i = 0;
-
-	if (fpointer) {
-		// determine size of file
-		fseek(fpointer, 0, SEEK_END); // jump to end
-		size = ftell(fpointer);
-		fseek(fpointer, 0, SEEK_SET); // jump back
-		buffer = malloc(size+1); // set buffer size to file length
-
-		while ((c = fgetc(fpointer)) != EOF) {
-			buffer[i++] = (char) c;
-		}
-		buffer[i] = '\0';
-
-		fclose(fpointer);
-		printf("Content of file: %s\n", buffer);
-	}
-	else {
-		perror("Error: ");
-		return(-1);
-	}
+	char* dict = loadDictionary();
+	printf("Content of file: %s\n", dict);
 
 	// TODO parse to JSON
 
@@ -134,7 +140,7 @@ int main()
 		name = readString(max, name);
 		name = convertString(name);
 
-		sendUDPMessage(sock, name);
+		sendUDPMessage(sock, dict);
 
 		free(name); // release memory 
 	}
