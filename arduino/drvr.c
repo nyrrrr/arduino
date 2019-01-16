@@ -54,7 +54,7 @@ char* convertString(char* str) {
 	return str; 
 }
 char* sendUDPMessage(SOCKET sock, char* msg) {
-
+	printf("Sending Message: ");
 	// define address
 	SOCKADDR_IN receiver;
 	receiver.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -64,10 +64,11 @@ char* sendUDPMessage(SOCKET sock, char* msg) {
 	// send
 	int returnCode = sendto(sock, msg, strlen(msg), 0, &receiver, sizeof(SOCKADDR_IN));
 	if (returnCode == SOCKET_ERROR) {
-		printf("Socket could not be started: %d\n", WSAGetLastError());
+		printf("FAILURE %d\n", WSAGetLastError());
 		return EXIT_FAILURE;
 	}
 	else {
+		printf("SUCCESS\n");
 		printf("Message sent: %s\n", msg);
 		return EXIT_SUCCESS;
 	}
@@ -90,7 +91,7 @@ char* loadDictionary() {
 		while ((c = fgetc(fpointer)) != EOF) {
 			buffer[i++] = (char)c;
 		}
-		buffer[i] = 0;
+		buffer[i] = 0; // add terminating zero
 
 		fclose(fpointer);
 		return buffer;
@@ -103,26 +104,34 @@ char* loadDictionary() {
 int main()
 {
 	// init socket
+	printf("Init Socket: ");
 	long ws = startWinsock();
 	SOCKET sock;
 
 	if (ws != 0) {
-		printf("Socket could not be initialized: %d\n", ws);
-		return 0;
+		printf("FAILURE %d\n", ws);
+		return -1;
+	}
+	else {
+		printf("SUCCESS\n");
 	}
 
 	// start socket
+	printf("Start Socket: ");
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock == INVALID_SOCKET) {
-		printf("Socket could not be started: %d\n", WSAGetLastError());
+		printf("FAILURE %d\n", WSAGetLastError());
 	}
 	else {
-		printf("Socket successfully started.\n");
+		printf("SUCCESS\n");
 	}
 
 	// read dictionary from disk
+	printf("Load Dictionary file: ");
 	char* dict = loadDictionary();
-	printf("Content of file: %s\n", dict);
+	
+	printf("SUCCESS\n");
+	//printf("Content of file: %s\n", dict); // TODO remove line
 
 	// TODO parse to JSON
 
@@ -134,13 +143,13 @@ int main()
 		name = (char*)malloc(max); // allocate buffer
 		if (name == 0) quit();
 
-		printf("Enter a string: \n");
+		printf("Enter a string: ");
 
 		whitespaceCheck();
 		name = readString(max, name);
 		name = convertString(name);
 
-		sendUDPMessage(sock, dict);
+		sendUDPMessage(sock, name);
 
 		free(name); // release memory 
 	}
