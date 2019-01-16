@@ -1,16 +1,15 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
-
 // start socket
 int startWinsock(void) {
 	WSADATA wsa;
 	return WSAStartup(MAKEWORD(2, 0), &wsa);
 }
-
 // error handling for empty buffer
 void quit()
 {
@@ -50,7 +49,9 @@ char* readString(int max, char* name) {
 	}
 	return name;
 }
-char* convertString(char* str) { return str; }
+char* convertString(char* str) { 
+	return str; 
+}
 char* sendUDPMessage(SOCKET sock, char* msg) {
 
 	// define address
@@ -90,12 +91,33 @@ int main()
 		printf("Socket successfully started.\n");
 	}
 
+	// read dictionary from disk
+	FILE *fpointer = fopen("./dictionary.json", "r");
+	long size;
+	char* buffer = 0;
+
+	if (fpointer) {
+		// determine size of file
+		fseek(fpointer, 0L, SEEK_END); // jump to end
+		size = ftell(fpointer);
+		fseek(fpointer, 0, SEEK_SET); // jump back
+		buffer = malloc(size+1); // set buffer size to file length
+
+		if (buffer) {
+			fread(buffer, 1, size, fpointer);
+		}
+		buffer[size] = 0;
+		fclose(fpointer);
+		printf("Content of file: %s\n", buffer);
+	}
+
+	// TODO parse to JSON
 
 	// buffer 
 	int max = 20;
 	char* name;
 
-	while (1) {
+	while (1) { // prevents program from stopping
 		name = (char*)malloc(max); // allocate buffer
 		if (name == 0) quit();
 
@@ -109,7 +131,6 @@ int main()
 
 		free(name); // release memory 
 	}
-
 	return 0;
 }
 
