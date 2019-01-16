@@ -134,7 +134,7 @@ int main()
 		name = readString(max, name);
 		name = convertString(name);
 
-		sendUDPMessage(sock, buffer);
+		sendUDPMessage(sock, name);
 
 		free(name); // release memory 
 	}
