@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="arduino\drvr.c">
+    <ClCompile Include="drvr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

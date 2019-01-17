@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
+#include <string>
+
+using namespace std;
+
 // start socket
 int startWinsock(void) {
 	WSADATA wsa;
@@ -14,7 +18,7 @@ int startWinsock(void) {
 // error handling for empty buffer
 void quit()
 {
-	printf(stderr, "memory exhausted\n");
+	fprintf(stderr, "memory exhausted\n");
 	exit(1);
 }
 // check for empty string and leading whitespaces
@@ -30,28 +34,28 @@ void whitespaceCheck() {
 	}
 }
 // reads and returns string from user input
-char* readString(int max, char* name) {
+char* readString(int max, char* buffer) {
 	// read string 
 	int i = 0;
 	while (1) {
 		// add terminating zero 
 		int c = getchar();
 		if (isspace(c) || c == EOF) { // read til whitespace or end of file
-			name[i] = 0;
+			buffer[i] = 0;
 			break;
 		}
-		name[i] = c;
+		buffer[i] = c;
 		if (i == max - 1) { // buffer is full
 			max += max;
-			name = (char*)realloc(name, max); // get new and larger buffer
-			if (name == 0) quit();
+			buffer = (char*)realloc(buffer, max); // get new and larger buffer
+			if (buffer == 0) quit();
 		}
 		i++;
 	}
-	return name;
+	return buffer;
 }
-char* convertString(char* str) { 
-	return str; 
+char* convertString(char* str, char* dict) {
+	return str;
 }
 char* sendUDPMessage(SOCKET sock, char* msg) {
 	printf("Sending Message: ");
@@ -62,10 +66,10 @@ char* sendUDPMessage(SOCKET sock, char* msg) {
 	receiver.sin_port = htons(1337);
 
 	// send
-	int returnCode = sendto(sock, msg, strlen(msg), 0, &receiver, sizeof(SOCKADDR_IN));
+	int returnCode = sendto(sock, msg, strlen(msg), 0, (struct sockaddr *) &receiver, sizeof(SOCKADDR_IN));
 	if (returnCode == SOCKET_ERROR) {
 		printf("FAILURE %d\n", WSAGetLastError());
-		return EXIT_FAILURE;
+		quit();
 	}
 	else {
 		printf("SUCCESS\n");
@@ -86,7 +90,7 @@ char* loadDictionary() {
 		fseek(fpointer, 0, SEEK_END); // jump to end
 		size = ftell(fpointer);
 		fseek(fpointer, 0, SEEK_SET); // jump back
-		buffer = malloc(size + 1); // set buffer size to file length
+		buffer = (char*) malloc(size + 1); // set buffer size to file length
 
 		while ((c = fgetc(fpointer)) != EOF) {
 			buffer[i++] = (char)c;
@@ -98,7 +102,7 @@ char* loadDictionary() {
 	}
 	else {
 		perror("FAILURE\nError");
-		return(-1);
+		exit(1);
 	}
 }
 int main()
@@ -129,29 +133,29 @@ int main()
 	// read dictionary from disk
 	printf("Load Dictionary file: ");
 	char* dict = loadDictionary();
-	
+
 	printf("SUCCESS\n");
-	//printf("Content of file: %s\n", dict); // TODO remove line
+	// printf("Content of file: %s\n", dict); // TODO remove line
 
 	// TODO parse to JSON
 
 	// buffer 
-	int max = 20;
-	char* name;
+	int max = 4192;
+	char* buffer;
 
 	while (1) { // prevents program from stopping
-		name = (char*)malloc(max); // allocate buffer
-		if (name == 0) quit();
+		buffer = (char*)malloc(max); // allocate buffer
+		if (buffer == 0) quit();
 
 		printf("Enter a string: ");
 
 		whitespaceCheck();
-		name = readString(max, name);
-		name = convertString(name);
+		buffer = readString(max, buffer);
+		buffer = convertString(buffer, dict);
 
-		sendUDPMessage(sock, name);
+		sendUDPMessage(sock, buffer);
 
-		free(name); // release memory 
+		free(buffer); // release memory 
 	}
 	return 0;
 }
