@@ -97,7 +97,7 @@ char* loadDictionary() {
 		return buffer;
 	}
 	else {
-		perror("Error: ");
+		perror("FAILURE\nError");
 		return(-1);
 	}
 }
@@ -116,7 +116,7 @@ int main()
 		printf("SUCCESS\n");
 	}
 
-	// start socket
+	// actually start socket
 	printf("Start Socket: ");
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock == INVALID_SOCKET) {
