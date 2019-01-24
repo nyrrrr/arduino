@@ -7,6 +7,10 @@
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
 #include <string>
+#include <map>
+#include <algorithm>
+#include <vector>
+#include <sstream> 
 
 using namespace std;
 
@@ -54,9 +58,6 @@ char* readString(int max, char* buffer) {
 	}
 	return buffer;
 }
-char* convertString(char* str, char* dict) {
-	return str;
-}
 char* sendUDPMessage(SOCKET sock, char* msg) {
 	printf("Sending Message: ");
 	// define address
@@ -79,7 +80,7 @@ char* sendUDPMessage(SOCKET sock, char* msg) {
 }
 // this method loads the JSON file that contains the string mappings
 // necessary for sending instructions to the arduino board
-char* loadDictionary() {
+char* loadDictionaryFile() {
 	FILE *fpointer = fopen("./dictionary.json", "r");
 	long size;
 	char* buffer = 0;
@@ -104,6 +105,39 @@ char* loadDictionary() {
 		perror("FAILURE\nError");
 		exit(1);
 	}
+}
+map<string, string> buildDictionary(char* dictcharstring) {
+
+	map<string, string> dictionary;
+	string dict(dictcharstring);
+
+	// remove special chars, linebreaks and tabulators and quotes
+	char chars[] = "{} \n\t\"";
+	for (int i = 0; i < strlen(chars); ++i)
+	{
+		dict.erase(std::remove(dict.begin(), dict.end(), chars[i]), dict.end());
+	}
+
+	stringstream ss(dict); // convert to stringstream for easier editing
+	string keyvaluepair; // "example": "value"
+
+	// split string by comma
+	while (getline(ss, keyvaluepair, ','))
+	{
+		//printf("%s\n", keyvaluepair.c_str()); // debug comments that can be deleted
+
+		// splitting keyvaluepair into one key and one value string for dictionary usage
+		dictionary[(string) keyvaluepair.substr(0, keyvaluepair.find(':'))] = keyvaluepair.substr(keyvaluepair.find(':') + 1, strlen(keyvaluepair.c_str())-1); // dictionary[key] = value
+
+	}
+	//printf("\n\ncharactertest: %s\n\n", dictionary["charactertest"].c_str()); // debug comments that can be deleted
+
+	return dictionary;
+}
+char* convertString(char* str, char* dict) {
+	//create dictionary hashmap from the json string
+	buildDictionary(dict);
+	return str;
 }
 int main()
 {
@@ -132,30 +166,27 @@ int main()
 
 	// read dictionary from disk
 	printf("Load Dictionary file: ");
-	char* dict = loadDictionary();
+	char* dict = loadDictionaryFile();
 
 	printf("SUCCESS\n");
-	// printf("Content of file: %s\n", dict); // TODO remove line
-
-	// TODO parse to JSON
 
 	// buffer 
 	int max = 4192;
-	char* buffer;
+	char* message;
 
 	while (1) { // prevents program from stopping
-		buffer = (char*)malloc(max); // allocate buffer
-		if (buffer == 0) quit();
+		message = (char*)malloc(max); // allocate buffer
+		if (message == 0) quit();
 
 		printf("Enter a string: ");
 
 		whitespaceCheck();
-		buffer = readString(max, buffer);
-		buffer = convertString(buffer, dict);
+		message = readString(max, message);
+		message = convertString(message, dict);
 
-		sendUDPMessage(sock, buffer);
+		sendUDPMessage(sock, message);
 
-		free(buffer); // release memory 
+		free(message); // release memory 
 	}
 	return 0;
 }

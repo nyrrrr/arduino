@@ -1,3 +1,1 @@
-﻿  drvr.cpp
-c:\users\tmoth\google drive\technikerarbeit\udpclient\drvr.cpp(79): warning C4715: "sendUDPMessage": Nicht alle Codepfade geben einen Wert zurück.
-  arduino.vcxproj -> C:\Users\tmoth\Google Drive\Technikerarbeit\udpclient\Debug\arduino.exe
+﻿  arduino.vcxproj -> C:\Users\d056678\Desktop\arduino\Debug\arduino.exe
