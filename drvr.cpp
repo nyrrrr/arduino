@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <vector>
 #include <sstream> 
+#include <list>
 
 using namespace std;
 
@@ -124,20 +125,39 @@ map<string, string> buildDictionary(char* dictcharstring) {
 	// split string by comma
 	while (getline(ss, keyvaluepair, ','))
 	{
-		//printf("%s\n", keyvaluepair.c_str()); // debug comments that can be deleted
-
 		// splitting keyvaluepair into one key and one value string for dictionary usage
 		dictionary[(string) keyvaluepair.substr(0, keyvaluepair.find(':'))] = keyvaluepair.substr(keyvaluepair.find(':') + 1, strlen(keyvaluepair.c_str())-1); // dictionary[key] = value
-
 	}
-	//printf("\n\ncharactertest: %s\n\n", dictionary["charactertest"].c_str()); // debug comments that can be deleted
 
 	return dictionary;
 }
 char* convertString(char* str, char* dict) {
 	//create dictionary hashmap from the json string
-	buildDictionary(dict);
-	return str;
+
+	map<string, string> dictionary = buildDictionary(dict);
+	map<string, string>::iterator it;
+
+	string result;
+	string msg(str);
+	stringstream ss(msg);
+
+	int i = 0;
+
+	while (getline(ss, msg, ',')) { // split by comma
+			
+			it = dictionary.find(msg); // find input in dictionary
+			if (it == dictionary.end()) { // if string not found try next string
+				continue;
+			}
+			else { // create result string
+				result += it->second;
+			}
+			
+		//printf("%s\n", msg.c_str());
+	}
+	result += "\0"; // ending zero
+
+	return strcpy(str, result.c_str());
 }
 int main()
 {
