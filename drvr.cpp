@@ -49,8 +49,13 @@ char* readString(int max, char* buffer) {
 		// add terminating zero 
 		int c = getchar();
 		if (isspace(c) || c == EOF) { // read til whitespace or end of file
-			buffer[i] = 0;
-			break;
+			if (c == ' ') {
+				continue;
+			}
+			else {
+				buffer[i] = 0;
+				break;
+			}
 		}
 		buffer[i] = c;
 		if (i == max - 1) { // buffer is full
