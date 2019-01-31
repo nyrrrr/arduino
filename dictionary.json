@@ -1,6 +1,36 @@
 {
-  "peter": "0x12",
-  "anna": "0x34",
-  "frank": "0x02",
-  "max": "0x55"
+  "BS1": {
+    "Bank1": {
+      "str.wasd": "0x01",
+      "str.qeerr": "0x02",
+      "str.ewqe": "0x03"
+    },
+    "Bank2": {
+      "str.eqww": "0x04",
+      "str.dqqt": "0x05",
+      "str.fghj": "0x06"
+    },
+    "Bank3": {
+      "str.wwww": "0x07",
+      "str.dddd": "0x08",
+      "str.eeee": "0x09"
+    }
+  },
+  "BS2": {
+    "Bank1": {
+      "str.lmno": "0x0A",
+      "str.lmao": "0x0B",
+      "str.rofl": "0x0C"
+    },
+    "Bank2": {
+      "str.lol": "0x0D",
+      "str.ldap": "0x0E",
+      "str.nfat": "0x0F"
+    },
+    "Bank3": {
+      "str.lala": "0x10",
+      "str.blaa": "0x11",
+      "str.blah": "0x12"
+    }
+  }
 }

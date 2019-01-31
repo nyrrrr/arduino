@@ -12,6 +12,9 @@
 #include <vector>
 #include <sstream> 
 #include <list>
+#include <fstream>
+#include <json/json.h>
+#include <iostream>
 
 using namespace std;
 
@@ -23,7 +26,7 @@ int startWinsock(void) {
 // error handling for empty buffer
 void quit()
 {
-	fprintf(stderr, "memory exhausted\n");
+	cerr << stderr << endl << "memory exhausted" << endl;
 	exit(1);
 }
 // check for empty string and leading whitespaces
@@ -60,7 +63,7 @@ char* readString(int max, char* buffer) {
 	return buffer;
 }
 char* sendUDPMessage(SOCKET sock, char* msg) {
-	printf("Sending Message: ");
+	cout << "Sending Message: ";
 	// define address
 	SOCKADDR_IN receiver;
 	receiver.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -70,125 +73,82 @@ char* sendUDPMessage(SOCKET sock, char* msg) {
 	// send
 	int returnCode = sendto(sock, msg, strlen(msg), 0, (struct sockaddr *) &receiver, sizeof(SOCKADDR_IN));
 	if (returnCode == SOCKET_ERROR) {
-		printf("FAILURE %d\n", WSAGetLastError());
+		cerr << "FAILURE " + WSAGetLastError() << endl;
 		quit();
 	}
 	else {
-		printf("SUCCESS\n");
-		printf("Message sent: %s\n", msg);
+		cout << "SUCCESS" << endl;
 		return EXIT_SUCCESS;
 	}
 }
-// this method loads the JSON file that contains the string mappings
-// necessary for sending instructions to the arduino board
-char* loadDictionaryFile() {
-	FILE *fpointer = fopen("./dictionary.json", "r");
-	long size;
-	char* buffer = 0;
-	int c, i = 0;
+// load dictionary.json from disc and parse it
+Json::Value buildDictionary() {
+	Json::Value root;
+	Json::Reader reader;
+	ifstream text("dictionary.json", ifstream::binary);
+	bool parsingSuccessful = reader.parse(text, root);
+	if (!parsingSuccessful) {
+		cerr << "FAILURE" << endl;
+		quit();
+	}
+	return root;
+}
+//create dictionary hashmap from the json string
+char* convertString(char* str) {
 
-	if (fpointer) {
-		// determine size of file
-		fseek(fpointer, 0, SEEK_END); // jump to end
-		size = ftell(fpointer);
-		fseek(fpointer, 0, SEEK_SET); // jump back
-		buffer = (char*) malloc(size + 1); // set buffer size to file length
+	// read dictionary from disk
+	cout << "Load Dictionary file: ";
+	Json::Value root = buildDictionary();
+	cout << "SUCCESS" << endl;
 
-		while ((c = fgetc(fpointer)) != EOF) {
-			buffer[i++] = (char)c;
+	// iterate over building blocks
+	string compare(str), result("");
+	cout << "Processing user input..." << endl;
+	for (Json::Value::const_iterator blocks = root.begin(); blocks != root.end(); ++blocks) {
+		cout << "Checking " << blocks.name();
+		result += blocks.name();
+		for (Json::Value::const_iterator banks = root[blocks.name()].begin(); banks != root[blocks.name()].end(); ++banks) {
+			cout << ", " << banks.name();
+
+			for (int i = 0; i < banks->getMemberNames().size(); i++) {
+				if (compare.find(banks->getMemberNames()[i]) != string::npos) {
+					result += root[blocks.name()][banks.name()][banks->getMemberNames()[i]].asString();
+				}
+				else {
+					// if not found, add zeroes
+					result += "0x00";
+				}
+			}
 		}
-		buffer[i] = 0; // add terminating zero
-
-		fclose(fpointer);
-		return buffer;
+		cout << "..." << endl;
 	}
-	else {
-		perror("FAILURE\nError");
-		exit(1);
-	}
-}
-map<string, string> buildDictionary(char* dictcharstring) {
-
-	map<string, string> dictionary;
-	string dict(dictcharstring);
-
-	// remove special chars, linebreaks and tabulators and quotes
-	char chars[] = "{} \n\t\"";
-	for (int i = 0; i < strlen(chars); ++i)
-	{
-		dict.erase(std::remove(dict.begin(), dict.end(), chars[i]), dict.end());
-	}
-
-	stringstream ss(dict); // convert to stringstream for easier editing
-	string keyvaluepair; // "example": "value"
-
-	// split string by comma
-	while (getline(ss, keyvaluepair, ','))
-	{
-		// splitting keyvaluepair into one key and one value string for dictionary usage
-		dictionary[(string) keyvaluepair.substr(0, keyvaluepair.find(':'))] = keyvaluepair.substr(keyvaluepair.find(':') + 1, strlen(keyvaluepair.c_str())-1); // dictionary[key] = value
-	}
-
-	return dictionary;
-}
-char* convertString(char* str, char* dict) {
-	//create dictionary hashmap from the json string
-
-	map<string, string> dictionary = buildDictionary(dict);
-	map<string, string>::iterator it;
-
-	string result;
-	string msg(str);
-	stringstream ss(msg);
-
-	int i = 0;
-
-	while (getline(ss, msg, ',')) { // split by comma
-			
-			it = dictionary.find(msg); // find input in dictionary
-			if (it == dictionary.end()) { // if string not found try next string
-				continue;
-			}
-			else { // create result string
-				result += it->second;
-			}
-			
-		//printf("%s\n", msg.c_str());
-	}
-	result += "\0"; // ending zero
-
+	cout << "Preprocessing done: " << result << endl;
 	return strcpy(str, result.c_str());
 }
 int main()
 {
 	// init socket
-	printf("Init Socket: ");
+	cout << "Init Socket: ";
 	long ws = startWinsock();
 	SOCKET sock;
 
 	if (ws != 0) {
-		printf("FAILURE %d\n", ws);
+		cerr << "FAILURE" <<endl << ws << endl;
 		return -1;
 	}
 	else {
-		printf("SUCCESS\n");
+		cout << "SUCCESS" << endl;
 	}
 
 	// actually start socket
-	printf("Start Socket: ");
+	cout << "Start Socket: ";
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock == INVALID_SOCKET) {
-		printf("FAILURE %d\n", WSAGetLastError());
+		cerr << "FAILURE" << endl << WSAGetLastError() << endl;
 	}
 	else {
-		printf("SUCCESS\n");
+		cout << "SUCCESS" << endl;
 	}
-
-	// read dictionary from disk
-	printf("Load Dictionary file: ");
-	char* dict = loadDictionaryFile();
-
-	printf("SUCCESS\n");
 
 	// buffer 
 	int max = 4192;
@@ -198,11 +158,11 @@ int main()
 		message = (char*)malloc(max); // allocate buffer
 		if (message == 0) quit();
 
-		printf("Enter a string: ");
+		cout << "Enter a string: ";
 
 		whitespaceCheck();
 		message = readString(max, message);
-		message = convertString(message, dict);
+		message = convertString(message);
 
 		sendUDPMessage(sock, message);
 
